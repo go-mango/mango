@@ -1,4 +1,4 @@
-module github.com/twharmon/goweb
+module github.com/go-mango/mango
 
 go 1.23.3
 

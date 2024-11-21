@@ -1,4 +1,4 @@
-package goweb
+package mango
 
 import (
 	"encoding/json"

@@ -1,0 +1,2 @@
+# Mango
+Simple web framework.

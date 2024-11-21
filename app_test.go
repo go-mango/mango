@@ -1,4 +1,4 @@
-package goweb_test
+package mango_test
 
 import (
 	"bytes"
@@ -8,13 +8,13 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/go-mango/mango"
+	"github.com/go-mango/mango/json"
 	"github.com/stretchr/testify/assert"
 	"github.com/twharmon/govalid"
-	"github.com/twharmon/goweb"
-	"github.com/twharmon/goweb/json"
 )
 
-func run(t *testing.T, app *goweb.App, method string, path string, body any, then func(*httptest.ResponseRecorder)) {
+func run(t *testing.T, app *mango.App, method string, path string, body any, then func(*httptest.ResponseRecorder)) {
 	var reader io.Reader
 	if body != nil {
 		b, _ := stdjson.Marshal(body)
@@ -32,9 +32,9 @@ func TestApp(t *testing.T) {
 		type Query struct {
 			ID string `query:"id"`
 		}
-		app := goweb.New()
-		app.GET("/", func(c *goweb.Context) goweb.Response {
-			query := goweb.ParseQuery[Query](c)
+		app := mango.New()
+		app.GET("/", func(c *mango.Context) mango.Response {
+			query := mango.ParseQuery[Query](c)
 			return json.OK(map[string]any{"id": query.ID})
 		})
 		run(t, app, http.MethodGet, "/?id=foo", nil, func(rr *httptest.ResponseRecorder) {
@@ -48,9 +48,9 @@ func TestApp(t *testing.T) {
 		type Query struct {
 			ID int `query:"id"`
 		}
-		app := goweb.New()
-		app.GET("/", func(c *goweb.Context) goweb.Response {
-			query := goweb.ParseQuery[Query](c)
+		app := mango.New()
+		app.GET("/", func(c *mango.Context) mango.Response {
+			query := mango.ParseQuery[Query](c)
 			return json.OK(map[string]any{"id": query.ID})
 		})
 		run(t, app, http.MethodGet, "/?id=5", nil, func(rr *httptest.ResponseRecorder) {
@@ -64,9 +64,9 @@ func TestApp(t *testing.T) {
 		type Query struct {
 			ID int `query:"id"`
 		}
-		app := goweb.New()
-		app.GET("/", func(c *goweb.Context) goweb.Response {
-			query := goweb.ParseQuery[Query](c)
+		app := mango.New()
+		app.GET("/", func(c *mango.Context) mango.Response {
+			query := mango.ParseQuery[Query](c)
 			return json.OK(map[string]any{"id": query.ID})
 		})
 		run(t, app, http.MethodGet, "/?id=foo", nil, func(rr *httptest.ResponseRecorder) {
@@ -77,9 +77,9 @@ func TestApp(t *testing.T) {
 		type Query struct {
 			id string `query:"id"`
 		}
-		app := goweb.New()
-		app.GET("/", func(c *goweb.Context) goweb.Response {
-			query := goweb.ParseQuery[Query](c)
+		app := mango.New()
+		app.GET("/", func(c *mango.Context) mango.Response {
+			query := mango.ParseQuery[Query](c)
 			return json.OK(map[string]any{"id": query.id})
 		})
 		run(t, app, http.MethodGet, "/?id=foo", nil, func(rr *httptest.ResponseRecorder) {
@@ -90,9 +90,9 @@ func TestApp(t *testing.T) {
 		type Path struct {
 			ID string `path:"id"`
 		}
-		app := goweb.New()
-		app.GET("/foo/{id}", func(c *goweb.Context) goweb.Response {
-			path := goweb.ParsePath[Path](c)
+		app := mango.New()
+		app.GET("/foo/{id}", func(c *mango.Context) mango.Response {
+			path := mango.ParsePath[Path](c)
 			return json.OK(map[string]any{"id": path.ID})
 		})
 		run(t, app, http.MethodGet, "/foo/bar", nil, func(rr *httptest.ResponseRecorder) {
@@ -106,9 +106,9 @@ func TestApp(t *testing.T) {
 		type Path struct {
 			ID int `path:"id"`
 		}
-		app := goweb.New()
-		app.GET("/foo/{id}", func(c *goweb.Context) goweb.Response {
-			path := goweb.ParsePath[Path](c)
+		app := mango.New()
+		app.GET("/foo/{id}", func(c *mango.Context) mango.Response {
+			path := mango.ParsePath[Path](c)
 			return json.OK(map[string]any{"id": path.ID})
 		})
 		run(t, app, http.MethodGet, "/foo/5", nil, func(rr *httptest.ResponseRecorder) {
@@ -123,9 +123,9 @@ func TestApp(t *testing.T) {
 			ID   int    `json:"id"`
 			Name string `json:"name"`
 		}
-		app := goweb.New()
-		app.POST("/", func(c *goweb.Context) goweb.Response {
-			return json.OK(goweb.ParseBody[Body](c))
+		app := mango.New()
+		app.POST("/", func(c *mango.Context) mango.Response {
+			return json.OK(mango.ParseBody[Body](c))
 		})
 		run(t, app, http.MethodPost, "/", &Body{ID: 5, Name: "foo"}, func(rr *httptest.ResponseRecorder) {
 			assert.Equal(t, http.StatusOK, rr.Result().StatusCode)
@@ -140,9 +140,9 @@ func TestApp(t *testing.T) {
 			ID   int    `json:"id"`
 			Name string `json:"name" valid:"req|min:3|max:32"`
 		}
-		app := goweb.New(goweb.WithValidator(govalid.Validate))
-		app.POST("/", func(c *goweb.Context) goweb.Response {
-			return json.OK(goweb.ParseBody[Body](c))
+		app := mango.New(mango.WithValidator(govalid.Validate))
+		app.POST("/", func(c *mango.Context) mango.Response {
+			return json.OK(mango.ParseBody[Body](c))
 		})
 		run(t, app, http.MethodPost, "/", map[string]any{"name": "Jo"}, func(rr *httptest.ResponseRecorder) {
 			assert.Equal(t, http.StatusBadRequest, rr.Result().StatusCode)
@@ -153,9 +153,9 @@ func TestApp(t *testing.T) {
 			ID   int    `json:"id"`
 			Name string `json:"name"`
 		}
-		app := goweb.New()
-		app.POST("/", func(c *goweb.Context) goweb.Response {
-			path := goweb.ParseBody[Body](c)
+		app := mango.New()
+		app.POST("/", func(c *mango.Context) mango.Response {
+			path := mango.ParseBody[Body](c)
 			return json.OK(path)
 		})
 		run(t, app, http.MethodPost, "/", map[string]any{"Name": 6}, func(rr *httptest.ResponseRecorder) {
@@ -167,7 +167,7 @@ func TestApp(t *testing.T) {
 			ID   int    `json:"id"`
 			Name string `json:"name"`
 		}
-		app := goweb.New(goweb.WithErrorHandler(func(c *goweb.Context, err error) goweb.Response {
+		app := mango.New(mango.WithErrorHandler(func(c *mango.Context, err error) mango.Response {
 			switch {
 			case c.Status() >= 500:
 				return json.Response(c.Status(), map[string]string{"message": "internal server error"})
@@ -175,8 +175,8 @@ func TestApp(t *testing.T) {
 				return json.Response(c.Status(), map[string]string{"message": err.Error()})
 			}
 		}))
-		app.POST("/", func(c *goweb.Context) goweb.Response {
-			body := goweb.ParseBody[Body](c)
+		app.POST("/", func(c *mango.Context) mango.Response {
+			body := mango.ParseBody[Body](c)
 			return json.OK(body)
 		})
 		run(t, app, http.MethodPost, "/", map[string]any{"name": 6}, func(rr *httptest.ResponseRecorder) {
