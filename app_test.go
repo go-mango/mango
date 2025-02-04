@@ -145,7 +145,7 @@ func TestApp(t *testing.T) {
 			return json.OK(mango.ParseBody[Body](c))
 		})
 		run(t, app, http.MethodPost, "/", map[string]any{"name": "Jo"}, func(rr *httptest.ResponseRecorder) {
-			assert.Equal(t, http.StatusBadRequest, rr.Result().StatusCode)
+			assert.Equal(t, http.StatusUnprocessableEntity, rr.Result().StatusCode)
 		})
 	})
 	t.Run("post body 400 wrong type", func(t *testing.T) {

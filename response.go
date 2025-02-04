@@ -25,18 +25,3 @@ func (r *responseWithStatus) WriteHeader(status int) {
 	r.ctx.status = status
 	r.w.WriteHeader(status)
 }
-
-type textResponse struct {
-	status int
-	body   string
-}
-
-func (r *textResponse) Send(w http.ResponseWriter) {
-	w.Header().Set("content-type", "text/plain")
-	w.WriteHeader(r.status)
-	w.Write([]byte(r.body))
-}
-
-func text(status int, body string) Response {
-	return &textResponse{body: body, status: status}
-}

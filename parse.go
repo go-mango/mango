@@ -25,7 +25,7 @@ func ParseQuery[Q any](c *Context) *Q {
 		setFieldValue(v.Field(i), str)
 	}
 	if err := c.app.validate(q); err != nil {
-		Abort(http.StatusBadRequest, err)
+		Abort(http.StatusUnprocessableEntity, err)
 	}
 	return q
 }
@@ -48,7 +48,7 @@ func ParsePath[P any](c *Context) *P {
 		setFieldValue(v.Field(i), str)
 	}
 	if err := c.app.validate(p); err != nil {
-		Abort(http.StatusBadRequest, err)
+		Abort(http.StatusUnprocessableEntity, err)
 	}
 	return p
 }
@@ -59,7 +59,7 @@ func ParseBody[B any](c *Context) *B {
 		Abort(http.StatusBadRequest, err)
 	}
 	if err := c.app.validate(b); err != nil {
-		Abort(http.StatusBadRequest, err)
+		Abort(http.StatusUnprocessableEntity, err)
 	}
 	return b
 }

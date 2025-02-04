@@ -5,6 +5,8 @@ import (
 	"log"
 	"net/http"
 	"os"
+
+	"github.com/go-mango/mango/json"
 )
 
 type App struct {
@@ -27,9 +29,9 @@ func New(options ...Option) *App {
 			switch {
 			case c.Status() >= 500:
 				log.Println(err)
-				return text(c.Status(), "internal server error")
+				return json.Response(c.Status(), map[string]any{"message": "internal server error"})
 			default:
-				return text(c.Status(), err.Error())
+				return json.Response(c.Status(), map[string]any{"message": err.Error()})
 			}
 		},
 		addr: addr,
