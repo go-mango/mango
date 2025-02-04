@@ -33,7 +33,7 @@ If mango is unable to parse the provided input, the default (yet customizable) b
 
 If validation fails, the default (yet customizable) behavior is to return a 422 response with a message: `{"message":"expected 'age' to be 0-100; got 123"}`.
 
-Internally, mango uses panic to handle these cases. Although controversial and not idiomatic go, this decision greatly reduces the amount of code required to write http handlers. You can leverage mango's panic / recovery mechanism anytime by calling `mango.Abort(statusCode, err)`.
+Internally, mango uses `panic` / `recover` to handle these cases. Although controversial and not idiomatic go, this decision greatly reduces the amount of code required to write http handlers. You can leverage mango's panic recovery mechanism by calling `mango.Abort(statusCode, err)`.
 
 ### Path parameters
 ```go
