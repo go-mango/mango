@@ -34,6 +34,7 @@ func ParsePath[P any](c *Context) *P {
 	p := new(P)
 	v := reflect.ValueOf(p).Elem()
 	t := v.Type()
+	req := c.Request()
 	for i := 0; i < t.NumField(); i++ {
 		f := t.Field(i)
 		if !f.IsExported() {
@@ -43,7 +44,7 @@ func ParsePath[P any](c *Context) *P {
 		if tag == "" {
 			tag = f.Name
 		}
-		str := c.Request().PathValue(tag)
+		str := req.PathValue(tag)
 		setFieldValue(v.Field(i), str)
 	}
 	if err := c.app.validate(p); err != nil {

@@ -186,4 +186,14 @@ func TestApp(t *testing.T) {
 			assert.Contains(t, resp["message"], "cannot unmarshal")
 		})
 	})
+	t.Run("panic", func(t *testing.T) {
+		app := mango.New()
+		app.GET("/", func(c *mango.Context) mango.Response {
+			v := make([]int, 0)
+			return json.OK(v[1])
+		})
+		run(t, app, http.MethodGet, "/", nil, func(rr *httptest.ResponseRecorder) {
+			assert.Equal(t, http.StatusInternalServerError, rr.Result().StatusCode)
+		})
+	})
 }
