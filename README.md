@@ -125,3 +125,39 @@ func main() {
 }
 ```
 
+## Middleware
+
+Middleware functions are used to process requests before they reach the final handler. They can be used for logging, authentication, or other pre-processing tasks. Here is an example of how to use middleware in your application:
+
+```go
+package main
+
+import (
+    "fmt"
+    "time"
+
+    "github.com/go-mango/mango"
+    "github.com/go-mango/mango/json"
+)
+
+func main() {
+    app := mango.New()
+
+    // Middleware to log the duration of each request
+    app.Use(func(c *mango.Context) {
+        start := time.Now()
+        c.Next()
+        fmt.Printf("request took %s\n", time.Since(start))
+    })
+
+    app.GET("/", func(c *mango.Context) mango.Response {
+        return json.OK(map[string]any{
+            "hello": "world",
+        })
+    })
+
+    app.Listen()
+}
+```
+
+In this example, the middleware logs the duration of each request. The `c.Next()` function is called to pass control to the next handler in the chain.
