@@ -53,7 +53,7 @@ func main() {
     app := mango.New(mango.WithValidator(govalid.Validate))
 
 	app.GET("/hello/{name}", func(c *mango.Context) mango.Response {
-        params := mango.ParsePath[Params](c)
+		params := mango.ParsePath[Params](c)
 		return json.OK(map[string]any{
 			"hello": params.Name,
 		})
@@ -83,7 +83,7 @@ func main() {
     app := mango.New(mango.WithValidator(govalid.Validate))
 
 	app.GET("/hello", func(c *mango.Context) mango.Response {
-        params := mango.ParseQuery[Params](c)
+		params := mango.ParseQuery[Params](c)
 		return json.OK(map[string]any{
 			"hello": params.Name,
 		})
@@ -113,7 +113,7 @@ func main() {
     app := mango.New(mango.WithValidator(govalid.Validate))
 
 	app.POST("/hello", func(c *mango.Context) mango.Response {
-        params := mango.ParseBody[Params](c)
+		params := mango.ParseBody[Params](c)
 		return json.OK(map[string]any{
 			"hello": params.Name,
 		})
