@@ -46,11 +46,11 @@ import (
 )
 
 type Params struct {
-    Name string `path:"name" valid:"req|max:32"`
+	Name string `path:"name" valid:"req|max:32"`
 }
 
 func main() {
-    app := mango.New(mango.WithValidator(govalid.Validate))
+	app := mango.New(mango.WithValidator(govalid.Validate))
 
 	app.GET("/hello/{name}", func(c *mango.Context) mango.Response {
 		params := mango.ParsePath[Params](c)
@@ -61,7 +61,7 @@ func main() {
 
 	app.Listen()
 
-    // GET /hello/Gopher => {"hello":"Gopher"}
+	// GET /hello/Gopher => {"hello":"Gopher"}
 }
 ```
 
@@ -76,11 +76,11 @@ import (
 )
 
 type Params struct {
-    Name string `query:"name" valid:"req|max:32"`
+	Name string `query:"name" valid:"req|max:32"`
 }
 
 func main() {
-    app := mango.New(mango.WithValidator(govalid.Validate))
+	app := mango.New(mango.WithValidator(govalid.Validate))
 
 	app.GET("/hello", func(c *mango.Context) mango.Response {
 		params := mango.ParseQuery[Params](c)
@@ -91,7 +91,7 @@ func main() {
 
 	app.Listen()
 
-    // GET /hello?name=Gopher => {"hello":"Gopher"}
+	// GET /hello?name=Gopher => {"hello":"Gopher"}
 }
 ```
 
@@ -106,11 +106,11 @@ import (
 )
 
 type Params struct {
-    Name string `json:"name" valid:"req|max:32"`
+	Name string `json:"name" valid:"req|max:32"`
 }
 
 func main() {
-    app := mango.New(mango.WithValidator(govalid.Validate))
+	app := mango.New(mango.WithValidator(govalid.Validate))
 
 	app.POST("/hello", func(c *mango.Context) mango.Response {
 		params := mango.ParseBody[Params](c)
@@ -121,7 +121,7 @@ func main() {
 
 	app.Listen()
 
-    // POST /hello {"name":"Gopher"} => {"hello":"Gopher"}
+	// POST /hello {"name":"Gopher"} => {"hello":"Gopher"}
 }
 ```
 
@@ -133,30 +133,30 @@ Middleware functions are used to process requests before they reach the final ha
 package main
 
 import (
-    "fmt"
-    "time"
+	"fmt"
+	"time"
 
-    "github.com/go-mango/mango"
-    "github.com/go-mango/mango/json"
+	"github.com/go-mango/mango"
+	"github.com/go-mango/mango/json"
 )
 
 func main() {
-    app := mango.New()
+	app := mango.New()
 
-    // Middleware to log the duration of each request
-    app.Use(func(c *mango.Context) {
-        start := time.Now()
-        c.Next()
-        fmt.Printf("request took %s\n", time.Since(start))
-    })
+	// Middleware to log the duration of each request
+	app.Use(func(c *mango.Context) {
+		start := time.Now()
+		c.Next()
+		fmt.Printf("request took %s\n", time.Since(start))
+	})
 
-    app.GET("/", func(c *mango.Context) mango.Response {
-        return json.OK(map[string]any{
-            "hello": "world",
-        })
-    })
+	app.GET("/", func(c *mango.Context) mango.Response {
+		return json.OK(map[string]any{
+			"hello": "world",
+		})
+	})
 
-    app.Listen()
+	app.Listen()
 }
 ```
 
