@@ -1,5 +1,5 @@
 # Mango
-Simple web framework.
+Experimental web framework.
 
 
 ## Basic Usage
@@ -10,7 +10,7 @@ package main
 
 import (
 	"github.com/go-mango/mango"
-	"github.com/go-mango/mango/json"
+	"github.com/go-mango/json"
 )
 
 func main() {
@@ -41,8 +41,8 @@ package main
 
 import (
 	"github.com/go-mango/mango"
-	"github.com/go-mango/mango/json"
-	"github.com/twharmon/govalid"
+	"github.com/go-mango/json"
+	"github.com/go-mango/validate"
 )
 
 type Params struct {
@@ -50,10 +50,10 @@ type Params struct {
 }
 
 func main() {
-	app := mango.New(mango.WithValidator(govalid.Validate))
+	app := mango.New()
 
 	app.GET("/hello/{name}", func(c *mango.Context) mango.Response {
-		params := mango.ParsePath[Params](c)
+		params := validate.Path[Params](c)
 		return json.OK(map[string]any{
 			"hello": params.Name,
 		})
@@ -71,8 +71,8 @@ package main
 
 import (
 	"github.com/go-mango/mango"
-	"github.com/go-mango/mango/json"
-	"github.com/twharmon/govalid"
+	"github.com/go-mango/json"
+	"github.com/go-mango/validate"
 )
 
 type Params struct {
@@ -83,7 +83,7 @@ func main() {
 	app := mango.New(mango.WithValidator(govalid.Validate))
 
 	app.GET("/hello", func(c *mango.Context) mango.Response {
-		params := mango.ParseQuery[Params](c)
+		params := validate.Query[Params](c)
 		return json.OK(map[string]any{
 			"hello": params.Name,
 		})
@@ -101,8 +101,8 @@ package main
 
 import (
 	"github.com/go-mango/mango"
-	"github.com/go-mango/mango/json"
-	"github.com/twharmon/govalid"
+	"github.com/go-mango/json"
+	"github.com/go-mango/validate"
 )
 
 type Params struct {
@@ -113,7 +113,7 @@ func main() {
 	app := mango.New(mango.WithValidator(govalid.Validate))
 
 	app.POST("/hello", func(c *mango.Context) mango.Response {
-		params := mango.ParseBody[Params](c)
+		params := validate.Body[Params](c)
 		return json.OK(map[string]any{
 			"hello": params.Name,
 		})
@@ -137,7 +137,7 @@ import (
 	"time"
 
 	"github.com/go-mango/mango"
-	"github.com/go-mango/mango/json"
+	"github.com/go-mango/json"
 )
 
 func main() {

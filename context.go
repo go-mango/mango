@@ -10,15 +10,16 @@ import (
 )
 
 type Context struct {
-	req     *http.Request
-	resp    http.ResponseWriter
-	status  int
-	app     *App
-	handler func(*Context) Response
-	cursor  int
-	aborted bool
-	store   map[string]any
-	mu      sync.RWMutex
+	req         *http.Request
+	resp        http.ResponseWriter
+	status      int
+	app         *App
+	handler     func(*Context) Response
+	cursor      int
+	aborted     bool
+	store       map[string]any
+	mu          sync.RWMutex
+	middlewares []MiddlewareHandler
 }
 
 func (c *Context) Set(key string, value any) {
@@ -84,11 +85,11 @@ func (c *Context) Next() {
 			c.app.handleError(c, fmt.Errorf("%v (%s)", err, location)).Send(c.ResponseWriter())
 		}
 	}()
-	if c.cursor == len(c.app.middlewares) {
+	if c.cursor == len(c.middlewares) {
 		c.handler(c).Send(c.ResponseWriter())
 		return
 	}
 	cursor := c.cursor
 	c.cursor++
-	c.app.middlewares[cursor](c)
+	c.middlewares[cursor](c)
 }

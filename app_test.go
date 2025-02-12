@@ -8,10 +8,10 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/go-mango/json"
 	"github.com/go-mango/mango"
-	"github.com/go-mango/mango/json"
+	"github.com/go-mango/validate"
 	"github.com/stretchr/testify/assert"
-	"github.com/twharmon/govalid"
 )
 
 func run(t *testing.T, app *mango.App, method string, path string, body any, then func(*httptest.ResponseRecorder)) {
@@ -34,7 +34,7 @@ func TestApp(t *testing.T) {
 		}
 		app := mango.New()
 		app.GET("/", func(c *mango.Context) mango.Response {
-			query := mango.ParseQuery[Query](c)
+			query := validate.Query[Query](c)
 			return json.OK(map[string]any{"id": query.ID})
 		})
 		run(t, app, http.MethodGet, "/?id=foo", nil, func(rr *httptest.ResponseRecorder) {
@@ -50,7 +50,7 @@ func TestApp(t *testing.T) {
 		}
 		app := mango.New()
 		app.GET("/", func(c *mango.Context) mango.Response {
-			query := mango.ParseQuery[Query](c)
+			query := validate.Query[Query](c)
 			return json.OK(map[string]any{"id": query.ID})
 		})
 		run(t, app, http.MethodGet, "/?id=5", nil, func(rr *httptest.ResponseRecorder) {
@@ -66,7 +66,7 @@ func TestApp(t *testing.T) {
 		}
 		app := mango.New()
 		app.GET("/", func(c *mango.Context) mango.Response {
-			query := mango.ParseQuery[Query](c)
+			query := validate.Query[Query](c)
 			return json.OK(map[string]any{"id": query.ID})
 		})
 		run(t, app, http.MethodGet, "/?id=foo", nil, func(rr *httptest.ResponseRecorder) {
@@ -79,7 +79,7 @@ func TestApp(t *testing.T) {
 		}
 		app := mango.New()
 		app.GET("/", func(c *mango.Context) mango.Response {
-			query := mango.ParseQuery[Query](c)
+			query := validate.Query[Query](c)
 			return json.OK(map[string]any{"id": query.id})
 		})
 		run(t, app, http.MethodGet, "/?id=foo", nil, func(rr *httptest.ResponseRecorder) {
@@ -92,7 +92,7 @@ func TestApp(t *testing.T) {
 		}
 		app := mango.New()
 		app.GET("/foo/{id}", func(c *mango.Context) mango.Response {
-			path := mango.ParsePath[Path](c)
+			path := validate.Path[Path](c)
 			return json.OK(map[string]any{"id": path.ID})
 		})
 		run(t, app, http.MethodGet, "/foo/bar", nil, func(rr *httptest.ResponseRecorder) {
@@ -108,7 +108,7 @@ func TestApp(t *testing.T) {
 		}
 		app := mango.New()
 		app.GET("/foo/{id}", func(c *mango.Context) mango.Response {
-			path := mango.ParsePath[Path](c)
+			path := validate.Path[Path](c)
 			return json.OK(map[string]any{"id": path.ID})
 		})
 		run(t, app, http.MethodGet, "/foo/5", nil, func(rr *httptest.ResponseRecorder) {
@@ -125,7 +125,7 @@ func TestApp(t *testing.T) {
 		}
 		app := mango.New()
 		app.POST("/", func(c *mango.Context) mango.Response {
-			return json.OK(mango.ParseBody[Body](c))
+			return json.OK(validate.Body[Body](c))
 		})
 		run(t, app, http.MethodPost, "/", &Body{ID: 5, Name: "foo"}, func(rr *httptest.ResponseRecorder) {
 			assert.Equal(t, http.StatusOK, rr.Result().StatusCode)
@@ -140,9 +140,9 @@ func TestApp(t *testing.T) {
 			ID   int    `json:"id"`
 			Name string `json:"name" valid:"req|min:3|max:32"`
 		}
-		app := mango.New(mango.WithValidator(govalid.Validate))
+		app := mango.New()
 		app.POST("/", func(c *mango.Context) mango.Response {
-			return json.OK(mango.ParseBody[Body](c))
+			return json.OK(validate.Body[Body](c))
 		})
 		run(t, app, http.MethodPost, "/", map[string]any{"name": "Jo"}, func(rr *httptest.ResponseRecorder) {
 			assert.Equal(t, http.StatusUnprocessableEntity, rr.Result().StatusCode)
@@ -155,7 +155,7 @@ func TestApp(t *testing.T) {
 		}
 		app := mango.New()
 		app.POST("/", func(c *mango.Context) mango.Response {
-			path := mango.ParseBody[Body](c)
+			path := validate.Body[Body](c)
 			return json.OK(path)
 		})
 		run(t, app, http.MethodPost, "/", map[string]any{"Name": 6}, func(rr *httptest.ResponseRecorder) {
@@ -176,7 +176,7 @@ func TestApp(t *testing.T) {
 			}
 		}))
 		app.POST("/", func(c *mango.Context) mango.Response {
-			body := mango.ParseBody[Body](c)
+			body := validate.Body[Body](c)
 			return json.OK(body)
 		})
 		run(t, app, http.MethodPost, "/", map[string]any{"name": 6}, func(rr *httptest.ResponseRecorder) {
@@ -194,6 +194,61 @@ func TestApp(t *testing.T) {
 		})
 		run(t, app, http.MethodGet, "/", nil, func(rr *httptest.ResponseRecorder) {
 			assert.Equal(t, http.StatusInternalServerError, rr.Result().StatusCode)
+		})
+	})
+	t.Run("use middleware", func(t *testing.T) {
+		app := mango.New()
+		app.Use(func(c *mango.Context) {
+			c.Set("foo", "bar")
+			c.Next()
+		})
+		app.GET("/", func(c *mango.Context) mango.Response {
+			foo := c.Get("foo")
+			return json.OK(map[string]any{"foo": foo})
+		})
+		run(t, app, http.MethodGet, "/", nil, func(rr *httptest.ResponseRecorder) {
+			assert.Equal(t, http.StatusOK, rr.Result().StatusCode)
+			var resp map[string]any
+			assert.Nil(t, stdjson.NewDecoder(rr.Body).Decode(&resp))
+			assert.Equal(t, "bar", resp["foo"])
+		})
+	})
+	t.Run("group route used", func(t *testing.T) {
+		app := mango.New()
+		group := app.Group(mango.WithMiddleware(func(c *mango.Context) {
+			c.Set("foo", "bar")
+			c.Next()
+		}))
+		group.GET("/", func(c *mango.Context) mango.Response {
+			foo := c.Get("foo")
+			return json.OK(map[string]any{"foo": foo})
+		})
+		run(t, app, http.MethodGet, "/", nil, func(rr *httptest.ResponseRecorder) {
+			assert.Equal(t, http.StatusOK, rr.Result().StatusCode)
+			var resp map[string]any
+			assert.Nil(t, stdjson.NewDecoder(rr.Body).Decode(&resp))
+			assert.Equal(t, "bar", resp["foo"])
+		})
+	})
+	t.Run("group route unused", func(t *testing.T) {
+		app := mango.New()
+		group := app.Group(mango.WithMiddleware(func(c *mango.Context) {
+			c.Set("foo", "bar")
+			c.Next()
+		}))
+		group.GET("/foo", func(c *mango.Context) mango.Response {
+			foo := c.Get("foo")
+			return json.OK(map[string]any{"foo": foo})
+		})
+		app.GET("/", func(c *mango.Context) mango.Response {
+			foo := c.Get("foo")
+			return json.OK(map[string]any{"foo": foo})
+		})
+		run(t, app, http.MethodGet, "/", nil, func(rr *httptest.ResponseRecorder) {
+			assert.Equal(t, http.StatusOK, rr.Result().StatusCode)
+			var resp map[string]any
+			assert.Nil(t, stdjson.NewDecoder(rr.Body).Decode(&resp))
+			assert.Nil(t, resp["foo"])
 		})
 	})
 }

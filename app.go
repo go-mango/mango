@@ -5,33 +5,37 @@ import (
 	"log"
 	"net/http"
 	"os"
-
-	"github.com/go-mango/mango/json"
 )
+
+type AppOption func(*App)
+
+func WithErrorHandler(handle func(*Context, error) Response) AppOption {
+	return func(a *App) {
+		a.handleError = handle
+	}
+}
 
 type App struct {
 	mux         *http.ServeMux
 	addr        string
-	validate    func(any) error
 	handleError func(*Context, error) Response
 	middlewares []MiddlewareHandler
 }
 
-func New(options ...Option) *App {
+func New(options ...AppOption) *App {
 	addr := os.Getenv("ADDR")
 	if addr == "" {
 		addr = ":8000"
 	}
 	a := &App{
-		mux:      http.NewServeMux(),
-		validate: func(a any) error { return nil },
+		mux: http.NewServeMux(),
 		handleError: func(c *Context, err error) Response {
 			switch {
 			case c.Status() >= 500:
 				log.Println(err)
-				return json.Response(c.Status(), map[string]any{"message": "internal server error"})
+				return jsonRespond(c.Status(), map[string]any{"message": "internal server error"})
 			default:
-				return json.Response(c.Status(), map[string]any{"message": err.Error()})
+				return jsonRespond(c.Status(), map[string]any{"message": err.Error()})
 			}
 		},
 		addr: addr,
@@ -40,6 +44,19 @@ func New(options ...Option) *App {
 		o(a)
 	}
 	return a
+}
+
+func (a *App) Group(options ...GroupOption) *Group {
+	mws := make([]MiddlewareHandler, len(a.middlewares))
+	copy(mws, a.middlewares)
+	g := &Group{
+		app:         a,
+		middlewares: mws,
+	}
+	for _, o := range options {
+		o(g)
+	}
+	return g
 }
 
 func (a *App) Use(middleware MiddlewareHandler) {
@@ -77,9 +94,10 @@ func (a *App) handle(method string, path string, handler func(c *Context) Respon
 	a.mux.HandleFunc(path, func(w http.ResponseWriter, r *http.Request) {
 		rw := &responseWithStatus{w: w}
 		c := &Context{
-			req:  r,
-			resp: rw,
-			app:  a,
+			req:         r,
+			resp:        rw,
+			app:         a,
+			middlewares: a.middlewares,
 		}
 		rw.ctx = c
 		c.handler = handler

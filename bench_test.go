@@ -5,8 +5,9 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/go-mango/json"
 	"github.com/go-mango/mango"
-	"github.com/go-mango/mango/json"
+	"github.com/go-mango/validate"
 )
 
 var plainTextBody = "Hello, World!"
@@ -45,7 +46,7 @@ func init() {
 	})
 	mangoApp.GET("/params/{foo}/{bar}/{baz}", func(c *mango.Context) mango.Response {
 		// return json.OK(mango.ParsePath[MangoPath](c))
-		path := mango.ParsePath[MangoPath](c)
+		path := validate.Path[MangoPath](c)
 		return json.OK(map[string]any{
 			"foo": path.Foo,
 			"bar": path.Bar,
